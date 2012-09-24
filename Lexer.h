@@ -1,50 +1,53 @@
 #include <vector>
-#include <istream>
+#include <string>
+
+namespace llvm {
+   class MemoryBuffer;
+}
 
 namespace Lexer {
 
 enum TokenType {
-   OPEN_PAREN,
-   CLOSE_PAREN,
-   INTEGER,
-   ATOM
 };
 
 class Token {
 public:
-   Token(TokenType type) : _type(type) {}
+   enum Type {
+      OpenParen,
+      CloseParen,
+      Integer,
+      Atom,
+      Eof,
+   };
+
+   Token() : _type(Eof) {}
    
-   TokenType GetType() const { return _type; }
-   virtual std::string ToString() const;
+   Type GetType() const { return _type; }
+   void SetType(Type type) { _type = type; }
+
+   const std::string &GetStringValue() const { return _stringValue; }
+   void SetStringValue(std::string &value) { _stringValue = value; }
+
+   int GetIntValue() const { return _intValue; }
+   void SetIntValue(int value) { _intValue = value; }
+
+   std::string ToString() const;
 
 private:
-   TokenType _type;
+   Type _type;
+   int _intValue;
+   std::string _stringValue;
 };
 
-class IntegerToken : public Token {
+class Tokenizer {
 public:
-   IntegerToken(int value) : Token(INTEGER), _value(value) {}
+   Tokenizer(const llvm::MemoryBuffer *input);
 
-   int GetValue() { return _value; }
-   virtual std::string ToString() const;
-
-private:
-   int _value;
-};
-
-class AtomToken : public Token {
-public:
-   AtomToken(std::string value) : Token(ATOM), _value(value) {}
-
-   const std::string &GetValue() { return _value; }
-   virtual std::string ToString() const;
+   void Next(Token &result);
 
 private:
-   std::string _value;
+   const char *_curPos;
+   std::string _tmpValue;
 };
-
-typedef std::vector<Token *> TokenVector;
-
-TokenVector Tokenize(std::istream &input);
 
 }

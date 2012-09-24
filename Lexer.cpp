@@ -3,100 +3,121 @@
 #include <sstream>
 #include <iostream>
 
+#include "llvm/ADT/OwningPtr.h"
+#include "llvm/Support/system_error.h"
+#include "llvm/Support/MemoryBuffer.h"
+
 using namespace std;
+using namespace llvm;
 
 namespace Lexer {
 
 string
 Token::ToString() const
 {
+   stringstream str;
+
    switch (_type) {
-   case OPEN_PAREN:
-      return "OpenParen";
-   case CLOSE_PAREN:
-      return "CloseParen";
-   default:
-      return "<invalid>";
+   case OpenParen:
+      str << "OpenParen";
+      break;
+   case CloseParen:
+      str << "CloseParen";
+      break;
+   case Integer:
+      str << "Integer(" << _intValue << ")";
+      break;
+   case Atom:
+      str << "Atom(" << _stringValue << ")";
+      break;
+   case Eof:
+      str << "Eof";
+      break;
    }
-}
-
-string
-IntegerToken::ToString() const
-{
-   stringstream str;
-
-   str << "Integer(" << _value << ")";
 
    return str.str();
 }
 
-string
-AtomToken::ToString() const
+Tokenizer::Tokenizer(const MemoryBuffer *input)
+   : _curPos(input->getBufferStart()), _tmpValue()
 {
-   stringstream str;
-
-   str << "Atom(" << _value << ")";
-
-   return str.str();
 }
 
-TokenVector
-Tokenize(istream &input)
+void
+Tokenizer::Next(Token &result)
 {
-   TokenVector tokens;
-   string tmp;
-   bool isInteger = true;
+   while (true) {
+      char c = *_curPos;
 
-   while (input.good()) {
-      char c = input.get();
-
-      if (c == '(' || c == ')' || c == ' ' || c == '\t' || c == '\n' ||
-          input.eof()) {
-         if (tmp.length() > 0) {
+      if (c == '(' || c == ')' ||
+          c == ' ' || c == '\t' || c == '\n' || c == '\0') {
+         if (_tmpValue.length() > 0) {
             bool isInteger = true;
 
-            for (int i = 0; i < tmp.length(); i++) {
-               if (tmp[i] < '0' || tmp[i] > '9') {
+            for (string::iterator i = _tmpValue.begin();
+                 i != _tmpValue.end();
+                 i++) {
+               if (*i < '0' || *i > '9') {
                   isInteger = false;
                   break;
                }
             }
 
             if (isInteger) {
-               tokens.push_back(new IntegerToken(atoi(tmp.c_str())));
+               result.SetType(Token::Integer);
+               result.SetIntValue(atoi(_tmpValue.c_str()));
             } else {
-               tokens.push_back(new AtomToken(tmp));
+               result.SetType(Token::Atom);
+               result.SetStringValue(_tmpValue);
             }
-         }
 
-         tmp.clear();
-
-         if (c == '(') {
-            tokens.push_back(new Token(OPEN_PAREN));
-         } else if (c == ')') {
-            tokens.push_back(new Token(CLOSE_PAREN));
+            _tmpValue.clear();
+            if (c != '(' && c != ')' && c != '\0') {
+               _curPos++;
+            }
+            return;
          }
-      } else {
-         tmp.push_back(c);
+      }
+
+      switch (c) {
+      case '(':
+         result.SetType(Token::OpenParen);
+         _curPos++;
+         return;
+      case ')':
+         result.SetType(Token::CloseParen);
+         _curPos++;
+         return;
+      case '\0':
+         result.SetType(Token::Eof);
+         return;
+      case '\t': case '\n': case ' ':
+         _curPos++;
+         break;
+      default:
+         _tmpValue.push_back(c);
+         _curPos++;
       }
    }
-
-   return tokens;
 }
 
 
 }
 
-int
-main(int argc, char **argv)
-{
-   Lexer::TokenVector tokens;
 
-   tokens = Lexer::Tokenize(cin);
+int main(int argc, char **argv) {
+   OwningPtr<MemoryBuffer> input;
 
-   for (Lexer::TokenVector::iterator i = tokens.begin(); i != tokens.end(); i++) {
-      cout << (*i)->ToString() << endl;
-   }
+   error_code err = MemoryBuffer::getSTDIN(input);
 
-   return 0;
+   Lexer::Tokenizer tokenizer(input.get());
+
+   Lexer::Token token;
+   do {
+      tokenizer.Next(token);
+
+      cout << token.ToString() << endl;
+   } while (token.GetType() != Lexer::Token::Eof);
+
+   return err.value();
 }
