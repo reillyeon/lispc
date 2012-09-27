@@ -49,50 +49,29 @@ Tokenizer::Next(Token &result)
    while (true) {
       char c = *_curPos;
 
-      if (c == '(' || c == ')' ||
-          c == ' ' || c == '\t' || c == '\n' || c == '\0') {
-         if (_tmpValue.length() > 0) {
-            bool isInteger = true;
-
-            for (string::iterator i = _tmpValue.begin();
-                 i != _tmpValue.end();
-                 i++) {
-               if (*i < '0' || *i > '9') {
-                  isInteger = false;
-                  break;
-               }
-            }
-
-            if (isInteger) {
-               result.SetType(Token::Integer);
-               result.SetIntValue(atoi(_tmpValue.c_str()));
-            } else {
-               result.SetType(Token::Atom);
-               result.SetStringValue(_tmpValue);
-            }
-
-            _tmpValue.clear();
-            if (c != '(' && c != ')' && c != '\0') {
-               _curPos++;
-            }
-            return;
-         }
-      }
-
       switch (c) {
       case '(':
-         result.SetType(Token::OpenParen);
-         _curPos++;
+         if (!ProcessValue(result)) {
+            result.SetType(Token::OpenParen);
+            _curPos++;
+         }
          return;
       case ')':
-         result.SetType(Token::CloseParen);
-         _curPos++;
+         if (!ProcessValue(result)) {
+            result.SetType(Token::CloseParen);
+            _curPos++;
+         }
          return;
       case '\0':
-         result.SetType(Token::Eof);
+         if (!ProcessValue(result)) {
+            result.SetType(Token::Eof);
+         }
          return;
       case '\t': case '\n': case ' ':
          _curPos++;
+         if (ProcessValue(result)) {
+            return;
+         }
          break;
       default:
          _tmpValue.push_back(c);
@@ -101,10 +80,38 @@ Tokenizer::Next(Token &result)
    }
 }
 
+bool
+Tokenizer::ProcessValue(Token &result)
+{
+   bool isInteger = true;
+
+   if (_tmpValue.length() == 0) {
+      return false;
+   }
+
+   for (string::iterator i = _tmpValue.begin(); i != _tmpValue.end(); i++) {
+      if (*i < '0' || *i > '9') {
+         isInteger = false;
+         break;
+      }
+   }
+
+   if (isInteger) {
+      result.SetType(Token::Integer);
+      result.SetIntValue(atoi(_tmpValue.c_str()));
+   } else {
+      result.SetType(Token::Atom);
+      result.SetStringValue(_tmpValue);
+   }
+
+   _tmpValue.clear();
+   return true;
+}
 
 }
 
 
+#if 0
 int main(int argc, char **argv) {
    OwningPtr<MemoryBuffer> input;
 
@@ -121,3 +128,4 @@ int main(int argc, char **argv) {
 
    return err.value();
 }
+#endif

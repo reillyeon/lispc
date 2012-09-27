@@ -46,6 +46,8 @@ public:
    void Next(Token &result);
 
 private:
+   bool ProcessValue(Token &result);
+
    const char *_curPos;
    std::string _tmpValue;
 };
