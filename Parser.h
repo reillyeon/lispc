@@ -1,6 +1,8 @@
 #include <string>
 #include <vector>
 
+#include "llvm/Support/StringPool.h"
+
 namespace llvm {
    class MemoryBuffer;
 }
@@ -10,8 +12,9 @@ namespace AST {
 class Expression {
 public:
    enum Type {
-      FunctionCall,
-      Constant
+      Sexp,
+      Atom,
+      Constant,
    };
 
    Expression(Type type) : _type(type) {}
@@ -27,20 +30,30 @@ private:
 
 typedef std::vector<Expression *> ExpressionList;
 
-class FunctionCall : public Expression {
+class List : public Expression {
 public:
-   FunctionCall() : Expression(Expression::FunctionCall) {}
-   virtual ~FunctionCall();
+   List() : Expression(Expression::Sexp) {}
+   virtual ~List();
 
-   void SetFunction(std::string function) { _function = function; }
-   const std::string &GetFunction() const { return _function; }
-   ExpressionList &GetArguments() { return _args; }
+   ExpressionList &GetElements() { return _elements; }
 
    virtual std::string ToString() const;
 
 private:
-   std::string _function;
-   ExpressionList _args;
+   ExpressionList _elements;
+};
+
+class Atom : public Expression {
+public:
+   Atom(llvm::PooledStringPtr value)
+      : Expression(Expression::Atom), _value(value) {}
+
+   llvm::PooledStringPtr GetValue() const { return _value; }
+
+   virtual std::string ToString() const;
+
+private:
+   llvm::PooledStringPtr _value;
 };
 
 class Constant : public Expression {
@@ -56,6 +69,7 @@ private:
    int _value;
 };
 
-Expression *Parse(const llvm::MemoryBuffer *input);
+Expression *Parse(const llvm::MemoryBuffer *input,
+                  llvm::StringPool *stringPool);
 
 }

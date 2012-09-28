@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "Lexer.h"
 
+#include <list>
 #include <sstream>
 #include <iostream>
 
@@ -9,27 +10,40 @@ using namespace llvm;
 
 namespace AST {
 
-FunctionCall::~FunctionCall()
+List::~List()
 {
-   for (ExpressionList::iterator i = _args.begin(); i != _args.end(); i++) {
+   for (ExpressionList::iterator i = _elements.begin();
+        i != _elements.end();
+        i++) {
       delete *i;
    }
 }
 
 std::string
-FunctionCall::ToString() const
+List::ToString() const
 {
    stringstream str;
+   bool first = true;
 
-   str << "(" << _function;
-   for (ExpressionList::const_iterator i = _args.begin();
-        i != _args.end();
+   str << "(";
+   for (ExpressionList::const_iterator i = _elements.begin();
+        i != _elements.end();
         i++) {
-      str << " " << (*i)->ToString();
+      if (!first) {
+         str << " ";
+      }
+      first = false;
+      str << (*i)->ToString();
    }
    str << ")";
 
    return str.str();
+}
+
+std::string
+Atom::ToString() const
+{
+   return *_value;
 }
 
 std::string
@@ -43,11 +57,12 @@ Constant::ToString() const
 }
 
 Expression *
-Parse(const llvm::MemoryBuffer *input)
+Parse(const MemoryBuffer *input,
+      StringPool *stringPool)
 {
-   Lexer::Tokenizer tokenizer(input);
+   Lexer::Tokenizer tokenizer(input, stringPool);
    Lexer::Token token;
-   ExpressionList stack;
+   list<List *> stack;
    Expression *result = NULL;
 
    while (true) {
@@ -60,31 +75,29 @@ Parse(const llvm::MemoryBuffer *input)
 
       switch (token.GetType()) {
       case Lexer::Token::OpenParen:
-         stack.push_back(new FunctionCall());
+         stack.push_back(new List());
          break;
       case Lexer::Token::CloseParen: {
-         Expression *top = stack.back();
+         List *top = stack.back();
 
          stack.pop_back();
          if (stack.empty()) {
             result = top;
          } else {
-            FunctionCall *func = static_cast<FunctionCall *>(stack.back());
-
-            func->GetArguments().push_back(top);
+            stack.back()->GetElements().push_back(top);
          }
          break;
       }
       case Lexer::Token::Integer: {
-         FunctionCall *func = static_cast<FunctionCall *>(stack.back());
+         Constant *c = new Constant(token.GetIntValue());
 
-         func->GetArguments().push_back(new Constant(token.GetIntValue()));
+         stack.back()->GetElements().push_back(c);
          break;
       }
       case Lexer::Token::Atom: {
-         FunctionCall *func = static_cast<FunctionCall *>(stack.back());
+         Atom *a = new Atom(token.GetAtomValue());
 
-         func->SetFunction(token.GetStringValue());
+         stack.back()->GetElements().push_back(a);
          break;
       }
       case Lexer::Token::Eof:

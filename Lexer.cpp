@@ -28,7 +28,7 @@ Token::ToString() const
       str << "Integer(" << _intValue << ")";
       break;
    case Atom:
-      str << "Atom(" << _stringValue << ")";
+      str << "Atom(" << *_atomValue << ")";
       break;
    case Eof:
       str << "Eof";
@@ -38,8 +38,11 @@ Token::ToString() const
    return str.str();
 }
 
-Tokenizer::Tokenizer(const MemoryBuffer *input)
-   : _curPos(input->getBufferStart()), _tmpValue()
+Tokenizer::Tokenizer(const MemoryBuffer *input,
+                     StringPool *stringPool)
+   : _curPos(input->getBufferStart()),
+     _stringPool(stringPool),
+     _tmpValue()
 {
 }
 
@@ -101,7 +104,7 @@ Tokenizer::ProcessValue(Token &result)
       result.SetIntValue(atoi(_tmpValue.c_str()));
    } else {
       result.SetType(Token::Atom);
-      result.SetStringValue(_tmpValue);
+      result.SetAtomValue(_stringPool->intern(_tmpValue));
    }
 
    _tmpValue.clear();
