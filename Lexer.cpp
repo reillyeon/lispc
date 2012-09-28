@@ -38,9 +38,9 @@ Token::ToString() const
    return str.str();
 }
 
-Tokenizer::Tokenizer(const MemoryBuffer *input,
-                     StringPool *stringPool)
-   : _curPos(input->getBufferStart()),
+Tokenizer::Tokenizer(const MemoryBuffer &input,
+                     StringPool &stringPool)
+   : _curPos(input.getBufferStart()),
      _stringPool(stringPool),
      _tmpValue()
 {
@@ -104,7 +104,7 @@ Tokenizer::ProcessValue(Token &result)
       result.SetIntValue(atoi(_tmpValue.c_str()));
    } else {
       result.SetType(Token::Atom);
-      result.SetAtomValue(_stringPool->intern(_tmpValue));
+      result.SetAtomValue(_stringPool.intern(_tmpValue));
    }
 
    _tmpValue.clear();
@@ -112,23 +112,3 @@ Tokenizer::ProcessValue(Token &result)
 }
 
 }
-
-
-#if 0
-int main(int argc, char **argv) {
-   OwningPtr<MemoryBuffer> input;
-
-   error_code err = MemoryBuffer::getSTDIN(input);
-
-   Lexer::Tokenizer tokenizer(input.get());
-
-   Lexer::Token token;
-   do {
-      tokenizer.Next(token);
-
-      cout << token.ToString() << endl;
-   } while (token.GetType() != Lexer::Token::Eof);
-
-   return err.value();
-}
-#endif

@@ -69,7 +69,7 @@ private:
    int _value;
 };
 
-Expression *Parse(const llvm::MemoryBuffer *input,
-                  llvm::StringPool *stringPool);
+Expression *Parse(const llvm::MemoryBuffer &input,
+                  llvm::StringPool &stringPool);
 
 }

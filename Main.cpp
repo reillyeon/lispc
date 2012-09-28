@@ -17,7 +17,7 @@ main(int argv, char **argc)
    MemoryBuffer *input = MemoryBuffer::getMemBuffer(str, "buffer");
    StringPool stringPool;
 
-   AST::Expression *expr = AST::Parse(input, &stringPool);
+   AST::Expression *expr = AST::Parse(*input, stringPool);
 
    cout << expr->ToString() << endl;
 

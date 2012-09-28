@@ -43,8 +43,8 @@ private:
 
 class Tokenizer {
 public:
-   Tokenizer(const llvm::MemoryBuffer *input,
-             llvm::StringPool *stringPool);
+   Tokenizer(const llvm::MemoryBuffer &input,
+             llvm::StringPool &stringPool);
 
    void Next(Token &result);
 
@@ -52,7 +52,7 @@ private:
    bool ProcessValue(Token &result);
 
    const char *_curPos;
-   llvm::StringPool *_stringPool;
+   llvm::StringPool &_stringPool;
    std::string _tmpValue;
 };
 

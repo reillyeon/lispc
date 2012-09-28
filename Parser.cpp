@@ -57,8 +57,8 @@ Constant::ToString() const
 }
 
 Expression *
-Parse(const MemoryBuffer *input,
-      StringPool *stringPool)
+Parse(const MemoryBuffer &input,
+      StringPool &stringPool)
 {
    Lexer::Tokenizer tokenizer(input, stringPool);
    Lexer::Token token;
