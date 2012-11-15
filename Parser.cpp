@@ -56,6 +56,28 @@ Constant::ToString() const
    return str.str();
 }
 
+std::string
+Variable::ToString() const
+{
+   return *_name;
+}
+
+std::string
+FunctionCall::ToString() const
+{
+   stringstream str;
+
+   str << "(" << *_name;
+   for (ExpressionList::const_iterator i = _args.begin();
+        i != _args.end();
+        i++) {
+      str << " " << (*i)->ToString();
+   }
+   str << ")";
+
+   return str.str();
+}
+
 Expression *
 Parse(const MemoryBuffer &input,
       StringPool &stringPool)

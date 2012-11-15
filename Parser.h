@@ -12,9 +12,11 @@ namespace AST {
 class Expression {
 public:
    enum Type {
-      Sexp,
+      List,
       Atom,
       Constant,
+      Variable,
+      FunctionCall,
    };
 
    Expression(Type type) : _type(type) {}
@@ -32,7 +34,7 @@ typedef std::vector<Expression *> ExpressionList;
 
 class List : public Expression {
 public:
-   List() : Expression(Expression::Sexp) {}
+   List() : Expression(Expression::List) {}
    virtual ~List();
 
    ExpressionList &GetElements() { return _elements; }
@@ -67,6 +69,33 @@ public:
 
 private:
    int _value;
+};
+
+class Variable : public Expression {
+public:
+   Variable(llvm::PooledStringPtr name)
+      : Expression(Expression::Variable), _name(name) {}
+
+   llvm::PooledStringPtr GetName() const { return _name; }
+
+   virtual std::string ToString() const;
+
+private:
+   llvm::PooledStringPtr _name;
+};
+
+class FunctionCall : public Expression {
+   FunctionCall(llvm::PooledStringPtr name)
+      : Expression(Expression::FunctionCall), _name(name) {}
+
+   llvm::PooledStringPtr GetName() const { return _name; }
+   ExpressionList &GetArguments() { return _args; }
+
+   virtual std::string ToString() const;
+
+private:
+   llvm::PooledStringPtr _name;
+   ExpressionList _args;
 };
 
 Expression *Parse(const llvm::MemoryBuffer &input,
