@@ -1,5 +1,6 @@
 #include "AST.h"
 #include "CodeGeneration.h"
+#include "Lexer.h"
 #include "Parser.h"
 
 #include <iostream>
@@ -23,7 +24,9 @@ main(int argc, char **argv)
    LLVMContext &ctx = getGlobalContext();
    StringPool stringPool;
 
-   AST::Expression *expr = Parser::Parse(*input.get(), stringPool);
+   Lexer::Tokenizer tokenizer(*input.get(), stringPool);
+   Parser::Parser parser(tokenizer);
+   AST::Expression *expr = parser.NextExpression();
 
    cout << expr->ToString() << endl;
 

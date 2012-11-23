@@ -1,21 +1,15 @@
 #include "Lexer.h"
 
 #include <sstream>
-#include <iostream>
 
-#include "llvm/ADT/OwningPtr.h"
-#include "llvm/Support/system_error.h"
 #include "llvm/Support/MemoryBuffer.h"
-
-using namespace std;
-using namespace llvm;
 
 namespace Lexer {
 
-string
+std::string
 Token::ToString() const
 {
-   stringstream str;
+   std::stringstream str;
 
    switch (_type) {
    case OpenParen:
@@ -38,8 +32,8 @@ Token::ToString() const
    return str.str();
 }
 
-Tokenizer::Tokenizer(const MemoryBuffer &input,
-                     StringPool &stringPool)
+Tokenizer::Tokenizer(const llvm::MemoryBuffer &input,
+                     llvm::StringPool &stringPool)
    : _curPos(input.getBufferStart()),
      _stringPool(stringPool),
      _tmpValue()
@@ -92,7 +86,8 @@ Tokenizer::ProcessValue(Token &result)
       return false;
    }
 
-   for (string::iterator i = _tmpValue.begin(); i != _tmpValue.end(); i++) {
+   for (std::string::iterator i = _tmpValue.begin();
+        i != _tmpValue.end(); i++) {
       if (*i < '0' || *i > '9') {
          isInteger = false;
          break;

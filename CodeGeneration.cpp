@@ -1,6 +1,5 @@
 #include "AST.h"
 #include "CodeGeneration.h"
-#include "Parser.h"
 
 #include "llvm/Function.h"
 

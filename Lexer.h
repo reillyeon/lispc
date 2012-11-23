@@ -1,4 +1,3 @@
-#include <vector>
 #include <string>
 
 #include "llvm/Support/StringPool.h"
@@ -8,9 +7,6 @@ namespace llvm {
 }
 
 namespace Lexer {
-
-enum TokenType {
-};
 
 class Token {
 public:

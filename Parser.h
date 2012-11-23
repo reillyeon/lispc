@@ -1,7 +1,9 @@
-#include "llvm/Support/StringPool.h"
-
 namespace llvm {
    class MemoryBuffer;
+}
+
+namespace Lexer {
+   class Tokenizer;
 }
 
 namespace AST {
@@ -10,7 +12,14 @@ namespace AST {
 
 namespace Parser {
 
-AST::Expression *Parse(const llvm::MemoryBuffer &input,
-                       llvm::StringPool &stringPool);
+class Parser {
+public:
+   Parser(Lexer::Tokenizer &tokenizer);
+
+   AST::Expression *NextExpression();
+
+private:
+   Lexer::Tokenizer &_tokenizer;
+};
 
 }

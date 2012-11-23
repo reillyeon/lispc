@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 
-#include "llvm/Support/IRBuilder.h"
 #include "llvm/Support/StringPool.h"
 
 namespace llvm {

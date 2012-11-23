@@ -3,25 +3,26 @@
 #include "Lexer.h"
 
 #include <list>
-#include <sstream>
 #include <iostream>
 
 using namespace std;
-using namespace llvm;
 
 namespace Parser {
 
-AST::Expression *
-Parse(const MemoryBuffer &input,
-      StringPool &stringPool)
+Parser::Parser(Lexer::Tokenizer &tokenizer)
+   : _tokenizer(tokenizer)
 {
-   Lexer::Tokenizer tokenizer(input, stringPool);
-   Lexer::Token token;
+}
+
+AST::Expression *
+Parser::NextExpression()
+{
    list<AST::List *> stack;
-   AST::Expression *result = NULL;
 
    while (true) {
-      tokenizer.Next(token);
+      Lexer::Token token;
+
+      _tokenizer.Next(token);
 
       cout << "Got " << token.ToString() << endl;
       if (!stack.empty()) {
@@ -37,7 +38,7 @@ Parse(const MemoryBuffer &input,
 
          stack.pop_back();
          if (stack.empty()) {
-            result = top;
+            return top;
          } else {
             stack.back()->GetElements().push_back(top);
          }
@@ -56,10 +57,9 @@ Parse(const MemoryBuffer &input,
          break;
       }
       case Lexer::Token::Eof:
-         return result;
+         return NULL;
       }
    }
 }
 
 }
-
