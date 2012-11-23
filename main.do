@@ -1,3 +1,3 @@
-DEPS="CodeGeneration.o Lexer.o Main.o Parser.o"
+DEPS="Atom.o CodeGeneration.o Constant.o FunctionCall.o Lexer.o List.o Main.o Parser.o Variable.o"
 redo-ifchange link $DEPS
 . ./link "$3" $DEPS

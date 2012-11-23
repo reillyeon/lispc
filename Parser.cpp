@@ -1,3 +1,4 @@
+#include "AST.h"
 #include "Parser.h"
 #include "Lexer.h"
 
@@ -8,84 +9,16 @@
 using namespace std;
 using namespace llvm;
 
-namespace AST {
+namespace Parser {
 
-List::~List()
-{
-   for (ExpressionList::iterator i = _elements.begin();
-        i != _elements.end();
-        i++) {
-      delete *i;
-   }
-}
-
-std::string
-List::ToString() const
-{
-   stringstream str;
-   bool first = true;
-
-   str << "(";
-   for (ExpressionList::const_iterator i = _elements.begin();
-        i != _elements.end();
-        i++) {
-      if (!first) {
-         str << " ";
-      }
-      first = false;
-      str << (*i)->ToString();
-   }
-   str << ")";
-
-   return str.str();
-}
-
-std::string
-Atom::ToString() const
-{
-   return *_value;
-}
-
-std::string
-Constant::ToString() const
-{
-   stringstream str;
-
-   str << _value;
-
-   return str.str();
-}
-
-std::string
-Variable::ToString() const
-{
-   return *_name;
-}
-
-std::string
-FunctionCall::ToString() const
-{
-   stringstream str;
-
-   str << "(" << *_name;
-   for (ExpressionList::const_iterator i = _args.begin();
-        i != _args.end();
-        i++) {
-      str << " " << (*i)->ToString();
-   }
-   str << ")";
-
-   return str.str();
-}
-
-Expression *
+AST::Expression *
 Parse(const MemoryBuffer &input,
       StringPool &stringPool)
 {
    Lexer::Tokenizer tokenizer(input, stringPool);
    Lexer::Token token;
-   list<List *> stack;
-   Expression *result = NULL;
+   list<AST::List *> stack;
+   AST::Expression *result = NULL;
 
    while (true) {
       tokenizer.Next(token);
@@ -97,10 +30,10 @@ Parse(const MemoryBuffer &input,
 
       switch (token.GetType()) {
       case Lexer::Token::OpenParen:
-         stack.push_back(new List());
+         stack.push_back(new AST::List());
          break;
       case Lexer::Token::CloseParen: {
-         List *top = stack.back();
+         AST::List *top = stack.back();
 
          stack.pop_back();
          if (stack.empty()) {
@@ -111,13 +44,13 @@ Parse(const MemoryBuffer &input,
          break;
       }
       case Lexer::Token::Integer: {
-         Constant *c = new Constant(token.GetIntValue());
+         AST::Constant *c = new AST::Constant(token.GetIntValue());
 
          stack.back()->GetElements().push_back(c);
          break;
       }
       case Lexer::Token::Atom: {
-         Atom *a = new Atom(token.GetAtomValue());
+         AST::Atom *a = new AST::Atom(token.GetAtomValue());
 
          stack.back()->GetElements().push_back(a);
          break;
