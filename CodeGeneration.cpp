@@ -1,5 +1,6 @@
 #include "AST.h"
 #include "CodeGeneration.h"
+#include "Global.h"
 
 #include "llvm/Function.h"
 
@@ -8,14 +9,13 @@ using namespace std;
 
 namespace CodeGeneration {
 
-Context::Context(LLVMContext &ctx,
-                 StringPool &stringPool)
+Context::Context(LLVMContext &ctx)
    : _ctx(ctx),
      _builder(ctx)
 {
-   _opAdd =  stringPool.intern("+");
-   _opSub =  stringPool.intern("-");
-   _opMult = stringPool.intern("*");
+   _opAdd =  Global::StringPool.intern("+");
+   _opSub =  Global::StringPool.intern("-");
+   _opMult = Global::StringPool.intern("*");
 }
 
 Function *
@@ -30,7 +30,7 @@ CodeGenerator::TranslateFunction(AST::Expression *expr)
 
    BasicBlock *bb = BasicBlock::Create(_ctx, "entry", func);
 
-   Context ctx(_ctx, _stringPool);
+   Context ctx(_ctx);
    IRBuilder<> &builder = ctx.GetBuilder();
 
    builder.SetInsertPoint(bb);

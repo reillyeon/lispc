@@ -22,9 +22,8 @@ main(int argc, char **argv)
    error_code err = MemoryBuffer::getFile(argv[1], input);
 
    LLVMContext &ctx = getGlobalContext();
-   StringPool stringPool;
 
-   Lexer::Tokenizer tokenizer(*input.get(), stringPool);
+   Lexer::Tokenizer tokenizer(*input.get());
    Parser::Parser parser(tokenizer);
    AST::Expression *expr = parser.NextExpression();
 
@@ -32,7 +31,7 @@ main(int argc, char **argv)
 
    Module *module = new Module("the module", ctx);
 
-   CodeGeneration::CodeGenerator codeGen(ctx, module, stringPool);
+   CodeGeneration::CodeGenerator codeGen(ctx, module);
 
    codeGen.TranslateFunction(expr);
 

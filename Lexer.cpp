@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "Global.h"
 
 #include <sstream>
 
@@ -32,10 +33,8 @@ Token::ToString() const
    return str.str();
 }
 
-Tokenizer::Tokenizer(const llvm::MemoryBuffer &input,
-                     llvm::StringPool &stringPool)
+Tokenizer::Tokenizer(const llvm::MemoryBuffer &input)
    : _curPos(input.getBufferStart()),
-     _stringPool(stringPool),
      _tmpValue()
 {
 }
@@ -99,7 +98,7 @@ Tokenizer::ProcessValue(Token &result)
       result.SetIntValue(atoi(_tmpValue.c_str()));
    } else {
       result.SetType(Token::Atom);
-      result.SetAtomValue(_stringPool.intern(_tmpValue));
+      result.SetAtomValue(Global::StringPool.intern(_tmpValue));
    }
 
    _tmpValue.clear();
