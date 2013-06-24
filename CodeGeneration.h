@@ -1,4 +1,4 @@
-#include "llvm/IRBuilder.h"
+#include "llvm/IR/IRBuilder.h"
 
 namespace llvm {
    class Function;

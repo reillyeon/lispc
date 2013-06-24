@@ -2,7 +2,7 @@
 #include "CodeGeneration.h"
 #include "Global.h"
 
-#include "llvm/Function.h"
+#include "llvm/IR/Function.h"
 
 using namespace llvm;
 using namespace std;
